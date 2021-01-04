@@ -2,40 +2,59 @@ package traefikjwttoken
 
 import (
 	"context"
-	"fmt"
-        "strconv"
-	"strings"
-	"net/http"
-        "time"
-        "math"
-	"encoding/base64"
 	"crypto/hmac"
 	"crypto/sha256"
-        "encoding/json"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"math"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
-type Config struct {
-	Secret string `json:"secret,omitempty"`
-	ProxyHeaderName string `json:"proxyHeaderName,omitempty"`
-	AuthHeader string `json:"authHeader,omitempty"`
-	HeaderPrefix string `json:"headerPrefix,omitempty"`
-}
+var ctx = context.Background()
 
+type Config struct {
+	Secret          string `json:"secret,omitempty"`
+	ProxyHeaderName string `json:"proxyHeaderName,omitempty"`
+	AuthHeader      string `json:"authHeader,omitempty"`
+	HeaderPrefix    string `json:"headerPrefix,omitempty"`
+}
 
 func CreateConfig() *Config {
 	return &Config{}
 }
 
 type JWT struct {
-	next	http.Handler
-	name	string
-	secret	string
-	proxyHeaderName	string
-	authHeader	string
-	headerPrefix	string
+	next            http.Handler
+	name            string
+	secret          string
+	proxyHeaderName string
+	authHeader      string
+	headerPrefix    string
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	err := rdb.Set(ctx, "key", "value", 0).Err()
+	if err != nil {
+		panic(err)
+	}
+
+	val, err := rdb.Get(ctx, "key").Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("key", val)
 
 	if len(config.Secret) == 0 {
 		config.Secret = "SECRET"
@@ -51,12 +70,12 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 
 	return &JWT{
-		next:		next,
-		name:		name,
-		secret:	config.Secret,
+		next:            next,
+		name:            name,
+		secret:          config.Secret,
 		proxyHeaderName: config.ProxyHeaderName,
-		authHeader: config.AuthHeader,
-		headerPrefix: config.HeaderPrefix,
+		authHeader:      config.AuthHeader,
+		headerPrefix:    config.HeaderPrefix,
 	}, nil
 }
 
@@ -68,7 +87,7 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	token, preprocessError  := preprocessJWT(headerToken, j.headerPrefix)
+	token, preprocessError := preprocessJWT(headerToken, j.headerPrefix)
 	if preprocessError != nil {
 		http.Error(res, "Request error", http.StatusBadRequest)
 		return
@@ -80,7 +99,7 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if (verified) {
+	if verified {
 		// If true decode payload
 		payload, decodeErr := decodeBase64(token.payload)
 		if decodeErr != nil {
@@ -100,11 +119,11 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 
 		fmt.Printf("str expiredate : ----------> %f , unixtime : %d \n", v["exp"], time.Now().UnixNano())
-		fmt.Printf("str expiredate : ----------> %d , unixtime : %d \n", int(math.Floor(v["exp"])), time.Now().UnixNano() / 1000000000)
+		fmt.Printf("str expiredate : ----------> %d , unixtime : %d \n", int(math.Floor(v["exp"].(float64))), time.Now().UnixNano()/1000000000)
 
-		expiredate := int64(math.Floor(v["exp"]))
+		expiredate := int64(math.Floor(v["exp"].(float64)))
 
-		if(isExpire(expiredate) && err == nil){
+		if isExpire(expiredate) && err == nil {
 
 			xType := fmt.Sprintf("expire Type : %T \n", v["exp"])
 			fmt.Printf(xType)
@@ -124,16 +143,16 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 func isExpire(ctime int64) bool {
 
-	if(ctime < (time.Now().UnixNano() / 1000000000)){
-		return true;
+	if ctime < (time.Now().UnixNano() / 1000000000) {
+		return true
 	}
-	return false;
+	return false
 }
 
 // Token Deconstructed header token
 type Token struct {
-	header string
-	payload string
+	header       string
+	payload      string
 	verification string
 }
 
