@@ -22,3 +22,7 @@ spec:
     traefikjwttoken:
       secret: 112233
 ```
+
+### Reference
+- https://github.com/23deg/jwt-middleware
+- https://github.com/muhgumus/traefik-token-middleware
