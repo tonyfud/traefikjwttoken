@@ -6,8 +6,8 @@
 Start with command
 ```yaml
 command:
-  - --experimental.plugins.traefik-token-middleware.modulename=github.com/tonyfud/traefikjwttoken
-  - --experimental.plugins.traefik-token-middleware.version=v0.0.5
+  - --experimental.plugins.traefikjwttoken.modulename=github.com/tonyfud/traefikjwttoken
+  - --experimental.plugins.traefikjwttoken.version=v0.0.5
 ```
 
 Activate plugin in your config  
