@@ -1,0 +1,7 @@
+displayName: traefikjwttoken
+type: middleware
+import: github.com/tonyfud/traefikjwttoken
+summary: 'Traefik JWT Token'
+testData:
+  encodedHeader:
+    - "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImY1NzVlNDZlLTU2ZDQtNGU0Zi04MDQ1LTcwMWJmYjViM2RmNCIsImlhdCI6MTYwODE1MDg1MSwiZXhwIjoxNjA4MTU0NDUxfQ.g_XGqgyR-vo1DZzHiw-HwPQJpJYSsYMvI9rdeMRJEg8"
