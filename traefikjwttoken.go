@@ -109,7 +109,7 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		// TODO Check for outside of ASCII range characters
 		Data := []byte(payload)
 
-		fmt.Println("str payload : ----------> ", payload)
+		// fmt.Println("str payload : ----------> ", payload)
 		var v map[string]interface{}
 		err := json.Unmarshal(Data, &v)
 		if err != nil {
@@ -117,8 +117,8 @@ func (j *JWT) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 
-		fmt.Printf("str expiredate : ----------> %f , unixtime : %d \n", v["exp"], time.Now().UnixNano())
-		fmt.Printf("str expiredate : ----------> %d , unixtime : %d \n", int(math.Floor(v["exp"].(float64))), time.Now().UnixNano()/1000000000)
+		// fmt.Printf("str expiredate : ----------> %f , unixtime : %d \n", v["exp"], time.Now().UnixNano())
+		// fmt.Printf("str expiredate : ----------> %d , unixtime : %d \n", int(math.Floor(v["exp"].(float64))), time.Now().UnixNano()/1000000000)
 
 		expiredate := int64(math.Floor(v["exp"].(float64)))
 
